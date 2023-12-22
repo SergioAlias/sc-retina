@@ -1,8 +1,8 @@
 # Sergio Alías, 20230920
-# Last modified 20231213
+# Last modified 20231221
 
 # Script for aggregating single-cell data to gene normcounts per sample and norm number of cells expressing each gene
-# Intended for the macular degeneration dataset
+# This script can generate ítems 3 and 5 in the Obsidian (and 4 if you remove the normalization)
 
 library(Seurat)
 library(optparse)
