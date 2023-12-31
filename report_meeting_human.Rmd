@@ -1,0 +1,155 @@
+---  
+title: "scRNA-seq: Human PCW Integration Mini Report"
+author: "SysBioLab"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    fig_width: 12
+---
+
+<!-- Sergio Alías, 20231115 -->
+<!-- Last modified 20231218 -->
+
+<style type='text/css'>
+    body .main-container {
+        max-width: 90%;
+
+    }
+
+    .plot_real_size {
+      overflow: scroll;
+      max-height: 600px;
+    }
+
+    .plot_real_size img{
+      max-width: none;
+      max-height: none;
+    }
+
+    embed {
+   
+  }   
+</style>
+
+<style>
+.dropdown-content {
+  display: none;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+</style>
+
+<style>
+  .superbigimage{
+      overflow-x:scroll;
+      white-space: nowrap;
+  }
+
+  .superbigimage img{
+     max-width: none;
+  }
+
+
+</style>
+
+# Integration of all samples: WT vs mutant
+
+```{r setup, include = FALSE}
+library(Seurat)
+library(dplyr)
+library(gridExtra)
+library(RColorBrewer)
+library(ggplot2)
+library(scCustomize)
+seu <- readRDS(file.path("outs", "seu.human.RDS"))
+seu.markers <- readRDS(file.path("outs", "seu.markers.human.RDS"))
+```
+
+### UMAP
+
+```{r c10, echo = FALSE, results = "asis"}
+DimPlot(seu, reduction = "umap", label = TRUE, repel = TRUE)
+```
+
+```{r c20, echo = FALSE, results = "asis"}
+seu$stage <- ifelse(seu$samplename %in% c("12PCW", "16PCW"), "early", "late")
+DimPlot(seu, reduction = "umap", split.by = "stage")
+```
+
+```{r c30, echo = FALSE, results = "asis"}
+DimPlot(seu, reduction = "umap", group.by = "stage")
+```
+
+### Marker genes
+
+#### Top 10 markers
+
+```{r c40, echo = FALSE, results = "asis"}
+grid.table(slice_max(seu.markers, n = 10, order_by = avg_log2FC))
+```
+
+#### Key genes
+
+```{r ccc0, echo = FALSE, results = "asis"}
+
+can.mark <- c("PLP1",
+              "SCN7A",
+              "MLANA",
+              "VWF",
+              "ACTA2",
+              "RPE65",
+              "BEST1",
+              "PTPRC",
+              "CD79A",
+              "AIF1",
+              "KIT")
+```
+
+```{r cc40, echo = FALSE, results = "asis"}
+grid.table(seu.markers[can.mark,][complete.cases(seu.markers[can.mark,]),])
+```
+
+### Markers expression
+
+#### Top 10 markers
+
+```{r c60, echo = FALSE, results = "asis", fig.show="hold", out.width="100%", fig.height = 20}
+Stacked_VlnPlot(seu,
+        ncol = 1,
+        features = slice_max(seu.markers, n = 10, order_by = avg_log2FC)$gene,
+        pt.size = 0,
+        x_lab_rotate = 45)
+```
+
+
+#### Key genes (for cell type annotation)
+
+```{r cc80, echo = FALSE, results = "asis", fig.show="hold", out.width="100%", fig.height = 22}
+Stacked_VlnPlot(seu,
+        ncol = 1,
+        features = seu.markers[can.mark,][complete.cases(seu.markers[can.mark,]),]$gene,
+        x_lab_rotate = 45)
+```
+
+### DEgenes: volcano plots
+
+```{r vol, echo = FALSE, results = "asis", warning = FALSE, fig.show="hold", out.width="100%", message = FALSE}
+
+DE.markers <- readRDS(file.path("outs", "human_markers_logfc01_pval05.RDS"))
+
+for (i in seq_along(DE.markers)){
+  if (nrow(DE.markers[[i]] > 0)){
+  print(EnhancedVolcano::EnhancedVolcano(DE.markers[[i]],
+                                         lab = rownames(DE.markers[[i]]),
+                                         x = 'avg_log2FC',
+                                         y = 'p_val_adj',
+                                         title = names(DE.markers)[[i]],
+                                         pCutoff = 0.05,
+                                         FCcutoff = 0.1))
+  }
+}
+```

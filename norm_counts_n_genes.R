@@ -12,7 +12,7 @@ option_list <- list(
   make_option(c("-d", "--dataset"), type = "character",
               help="Dataset to use: 'human' or 'mouse'"),
   make_option(c("-o", "--output"), type = "character",
-              help="Output to obtain: 'ncounts' or 'ncells'. Read the Obsidian for more info."),
+              help="Output to obtain: 'ncounts' or 'ncells'. Read the Obsidian for more info.")
 )  
 
 opt <- parse_args(OptionParser(option_list = option_list))
